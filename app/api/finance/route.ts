@@ -12,8 +12,9 @@ export async function GET(req: NextRequest) {
 
   const period = req.nextUrl.searchParams.get('period') || '30d';
   const range = getDateRange(period);
-  const dateFrom = format(range.from, 'yyyy-MM-dd');
-  const dateTo = format(range.to, 'yyyy-MM-dd');
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const dateFrom = new Date(range.from.getTime() + istOffset).toISOString().split('T')[0];
+  const dateTo = new Date(range.to.getTime() + istOffset).toISOString().split('T')[0];
 
   try {
     await connectDB();

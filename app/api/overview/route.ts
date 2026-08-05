@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
     let metaMediaSpend = 0;
     if (metaConfigured) {
       try {
-        const insightsRes = await fetchAdAccountInsights(format(range.from, 'yyyy-MM-dd'), format(range.to, 'yyyy-MM-dd'));
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const fromISTStr = new Date(range.from.getTime() + istOffset).toISOString().split('T')[0];
+        const toISTStr = new Date(range.to.getTime() + istOffset).toISOString().split('T')[0];
+        const insightsRes = await fetchAdAccountInsights(fromISTStr, toISTStr);
         if (insightsRes?.data?.[0]) metaMediaSpend = parseFloat(insightsRes.data[0].spend) || 0;
       } catch (e) {
         console.error("Overview Meta fetch failed", e);

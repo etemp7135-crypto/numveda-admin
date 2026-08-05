@@ -1,46 +1,51 @@
 import { connectDB, Order, Event, Session } from './db';
-import { startOfDay, endOfDay, subDays, startOfMonth, format } from 'date-fns';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 export type DateRange = { from: Date; to: Date };
 
-const TIMEZONE = 'Asia/Kolkata';
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
 export function getDateRange(period: string): DateRange {
   const now = new Date();
-  const nowIST = toZonedTime(now, TIMEZONE);
+  // Create a Date object where its UTC time equals the current IST time
+  const istTime = new Date(now.getTime() + IST_OFFSET_MS);
   
-  let fromIST, toIST;
+  let fromIST = new Date(istTime);
+  let toIST = new Date(istTime);
 
   switch (period) {
     case 'today':
-      fromIST = startOfDay(nowIST);
-      toIST = endOfDay(nowIST);
+      fromIST.setUTCHours(0, 0, 0, 0);
+      toIST.setUTCHours(23, 59, 59, 999);
       break;
     case 'yesterday':
-      fromIST = startOfDay(subDays(nowIST, 1));
-      toIST = endOfDay(subDays(nowIST, 1));
+      fromIST.setUTCDate(fromIST.getUTCDate() - 1);
+      fromIST.setUTCHours(0, 0, 0, 0);
+      toIST.setUTCDate(toIST.getUTCDate() - 1);
+      toIST.setUTCHours(23, 59, 59, 999);
       break;
     case '7d':
-      fromIST = startOfDay(subDays(nowIST, 6));
-      toIST = endOfDay(nowIST);
+      fromIST.setUTCDate(fromIST.getUTCDate() - 6);
+      fromIST.setUTCHours(0, 0, 0, 0);
+      toIST.setUTCHours(23, 59, 59, 999);
       break;
     case '30d':
-      fromIST = startOfDay(subDays(nowIST, 29));
-      toIST = endOfDay(nowIST);
+      fromIST.setUTCDate(fromIST.getUTCDate() - 29);
+      fromIST.setUTCHours(0, 0, 0, 0);
+      toIST.setUTCHours(23, 59, 59, 999);
       break;
     case 'month':
-      fromIST = startOfMonth(nowIST);
-      toIST = endOfDay(nowIST);
+      fromIST.setUTCDate(1);
+      fromIST.setUTCHours(0, 0, 0, 0);
+      toIST.setUTCHours(23, 59, 59, 999);
       break;
     default:
-      fromIST = new Date('2024-01-01');
-      toIST = endOfDay(nowIST);
+      fromIST = new Date('2024-01-01T00:00:00Z');
+      toIST.setUTCHours(23, 59, 59, 999);
   }
   
   return { 
-    from: fromZonedTime(fromIST, TIMEZONE), 
-    to: fromZonedTime(toIST, TIMEZONE) 
+    from: new Date(fromIST.getTime() - IST_OFFSET_MS), 
+    to: new Date(toIST.getTime() - IST_OFFSET_MS) 
   };
 }
 
@@ -97,8 +102,8 @@ export async function getDailyRevenue(range: DateRange) {
   const byDay: Record<string, { revenue: number; count: number }> = {};
   (orders as any[]).forEach(o => {
     // Convert to IST before extracting the day string
-    const istDate = toZonedTime(new Date(o.created_at), TIMEZONE);
-    const day = format(istDate, 'yyyy-MM-dd');
+    const istTime = new Date(new Date(o.created_at).getTime() + IST_OFFSET_MS);
+    const day = istTime.toISOString().split('T')[0];
     if (!byDay[day]) byDay[day] = { revenue: 0, count: 0 };
     byDay[day].revenue += o.amount || 0;
     byDay[day].count += 1;
