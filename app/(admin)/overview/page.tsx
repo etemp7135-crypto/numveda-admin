@@ -34,6 +34,14 @@ export default function OverviewPage() {
         <h2 className="chart-title" style={{ marginBottom: 16 }}>Financial Performance</h2>
         <div className="kpi-grid">
           <KPICard 
+            label="Actual Profit" 
+            value={formatINR(data?.metrics?.actualProfit?.value || 0)} 
+            subtext={`Margin: ${formatPercent(data?.metrics?.profitMargin?.value || 0)}`}
+            loading={loading}
+            highlight={true}
+            highlightMode={(data?.metrics?.actualProfit?.value || 0) >= 0 ? 'success' : 'danger'}
+          />
+          <KPICard 
             label="Gross Revenue" 
             value={formatINR(data?.metrics?.grossRevenue?.value || 0)} 
             change={data?.metrics?.grossRevenue?.change}
@@ -49,12 +57,6 @@ export default function OverviewPage() {
             label="Total Meta Cash Cost" 
             value={formatINR(data?.metrics?.totalMetaCashCost?.value || 0)}
             subtext={`Media Spend + GST`}
-            loading={loading} 
-          />
-          <KPICard 
-            label="Actual Profit" 
-            value={formatINR(data?.metrics?.actualProfit?.value || 0)} 
-            subtext={`Margin: ${formatPercent(data?.metrics?.profitMargin?.value || 0)}`}
             loading={loading} 
           />
         </div>

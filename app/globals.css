@@ -243,6 +243,20 @@ body {
   box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 
+.kpi-card.highlight-success {
+  border-color: var(--emerald);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  transform: scale(1.03);
+  z-index: 1;
+}
+
+.kpi-card.highlight-danger {
+  border-color: var(--rose);
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+  transform: scale(1.03);
+  z-index: 1;
+}
+
 .kpi-card-accent {
   position: absolute;
   top: 0; left: 0; right: 0;

@@ -1,18 +1,47 @@
 import { connectDB, Order, Event, Session } from './db';
 import { startOfDay, endOfDay, subDays, startOfMonth, format } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 export type DateRange = { from: Date; to: Date };
 
+const TIMEZONE = 'Asia/Kolkata';
+
 export function getDateRange(period: string): DateRange {
   const now = new Date();
+  const nowIST = toZonedTime(now, TIMEZONE);
+  
+  let fromIST, toIST;
+
   switch (period) {
-    case 'today':     return { from: startOfDay(now), to: endOfDay(now) };
-    case 'yesterday': return { from: startOfDay(subDays(now, 1)), to: endOfDay(subDays(now, 1)) };
-    case '7d':        return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
-    case '30d':       return { from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
-    case 'month':     return { from: startOfMonth(now), to: endOfDay(now) };
-    default:          return { from: new Date('2024-01-01'), to: endOfDay(now) }; // lifetime
+    case 'today':
+      fromIST = startOfDay(nowIST);
+      toIST = endOfDay(nowIST);
+      break;
+    case 'yesterday':
+      fromIST = startOfDay(subDays(nowIST, 1));
+      toIST = endOfDay(subDays(nowIST, 1));
+      break;
+    case '7d':
+      fromIST = startOfDay(subDays(nowIST, 6));
+      toIST = endOfDay(nowIST);
+      break;
+    case '30d':
+      fromIST = startOfDay(subDays(nowIST, 29));
+      toIST = endOfDay(nowIST);
+      break;
+    case 'month':
+      fromIST = startOfMonth(nowIST);
+      toIST = endOfDay(nowIST);
+      break;
+    default:
+      fromIST = new Date('2024-01-01');
+      toIST = endOfDay(nowIST);
   }
+  
+  return { 
+    from: fromZonedTime(fromIST, TIMEZONE), 
+    to: fromZonedTime(toIST, TIMEZONE) 
+  };
 }
 
 export function getPreviousPeriod(range: DateRange): DateRange {
@@ -67,7 +96,9 @@ export async function getDailyRevenue(range: DateRange) {
 
   const byDay: Record<string, { revenue: number; count: number }> = {};
   (orders as any[]).forEach(o => {
-    const day = format(new Date(o.created_at), 'yyyy-MM-dd');
+    // Convert to IST before extracting the day string
+    const istDate = toZonedTime(new Date(o.created_at), TIMEZONE);
+    const day = format(istDate, 'yyyy-MM-dd');
     if (!byDay[day]) byDay[day] = { revenue: 0, count: 0 };
     byDay[day].revenue += o.amount || 0;
     byDay[day].count += 1;
