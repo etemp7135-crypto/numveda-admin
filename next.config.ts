@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow large page data
+  experimental: {},
+  // Server external packages
+  serverExternalPackages: ['mongoose'],
 };
 
 export default nextConfig;
