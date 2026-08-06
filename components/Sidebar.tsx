@@ -55,7 +55,15 @@ export default function Sidebar() {
               const Icon = item.icon;
               const isActive = pathname.startsWith(item.path);
               return (
-                <Link key={item.path} href={item.path} className={`sidebar-link ${isActive ? 'active' : ''}`}>
+                <Link 
+                  key={item.path} 
+                  href={item.path} 
+                  className={`sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    const toggle = document.getElementById('sidebar-toggle') as HTMLInputElement;
+                    if (toggle) toggle.checked = false;
+                  }}
+                >
                   <Icon className="icon" />
                   {item.name}
                 </Link>
