@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { fetchAdAccountInsights, fetchCampaigns, testMetaConnection, metaConfigured } from '@/lib/meta';
+import { fetchAdAccountInsights, fetchCampaigns, testMetaConnection, metaConfigured, fetchDailySpend } from '@/lib/meta';
 import { getDateRange } from '@/lib/analytics';
 import { format } from 'date-fns';
 
@@ -22,9 +22,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [insightsRes, campaignsRes, connected] = await Promise.allSettled([
+    const [insightsRes, campaignsRes, dailySpendRes, connected] = await Promise.allSettled([
       fetchAdAccountInsights(dateFrom, dateTo),
       fetchCampaigns(dateFrom, dateTo),
+      fetchDailySpend(dateFrom, dateTo),
       testMetaConnection(),
     ]);
 
@@ -73,6 +74,12 @@ export async function GET(req: NextRequest) {
       };
     }).sort((a: any, b: any) => b.spend - a.spend);
 
+    const dailySpendData = dailySpendRes.status === 'fulfilled' ? dailySpendRes.value?.data || [] : [];
+    const dailySpend = dailySpendData.map((d: any) => ({
+      date: d.date_start,
+      spend: parseFloat(d.spend) || 0,
+    }));
+
     return NextResponse.json({
       configured: true,
       connected: isConnected,
@@ -80,6 +87,7 @@ export async function GET(req: NextRequest) {
         spend,
         impressions: parseInt(accountInsights.impressions) || 0,
         reach: parseInt(accountInsights.reach) || 0,
+        frequency: parseFloat(accountInsights.frequency) || 0,
         clicks: parseInt(accountInsights.clicks) || 0,
         cpc: parseFloat(accountInsights.cpc) || 0,
         cpm: parseFloat(accountInsights.cpm) || 0,
@@ -92,6 +100,7 @@ export async function GET(req: NextRequest) {
         conversionRate: convRate,
       },
       campaigns,
+      dailySpend,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message, configured: true, connected: false }, { status: 500 });

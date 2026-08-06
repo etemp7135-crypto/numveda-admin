@@ -292,7 +292,7 @@ export async function getCohortData(range: DateRange) {
   const { from, to } = range;
   const paidOrders = await Order.find({ created_at: { $gte: from, $lte: to }, status: 'paid' }).lean();
 
-  // Group by phone to find repeat customers
+  // Group by phone to find repeat customers and segments
   const byPhone: Record<string, any[]> = {};
   (paidOrders as any[]).forEach(o => {
     const phone = o.customer_details?.phone || 'unknown';
@@ -304,11 +304,47 @@ export async function getCohortData(range: DateRange) {
   const repeatCustomers = Object.values(byPhone).filter(orders => orders.length > 1).length;
   const totalOrders = paidOrders.length;
 
+  let masterOnlyCustomers = 0;
+  let ultimateOnlyCustomers = 0;
+  let bothReportsCustomers = 0;
+  let masterOnlyRevenue = 0;
+  let ultimateOnlyRevenue = 0;
+  let bothRevenue = 0;
+
+  Object.values(byPhone).forEach(orders => {
+    let hasMaster = false;
+    let hasUltimate = false;
+    let rev = 0;
+
+    orders.forEach(o => {
+      rev += (o.amount || 0);
+      if (o.customer_details?.type === 'ultimate' || o.amount === 149) hasUltimate = true;
+      if (o.customer_details?.type === 'master' || o.amount === 49) hasMaster = true;
+    });
+
+    if (hasMaster && hasUltimate) {
+      bothReportsCustomers++;
+      bothRevenue += rev;
+    } else if (hasUltimate) {
+      ultimateOnlyCustomers++;
+      ultimateOnlyRevenue += rev;
+    } else if (hasMaster) {
+      masterOnlyCustomers++;
+      masterOnlyRevenue += rev;
+    }
+  });
+
   return {
     uniqueCustomers,
     repeatCustomers,
     repeatRate: uniqueCustomers > 0 ? (repeatCustomers / uniqueCustomers) * 100 : 0,
     totalOrders,
     avgOrdersPerCustomer: uniqueCustomers > 0 ? totalOrders / uniqueCustomers : 0,
+    masterOnlyCustomers,
+    ultimateOnlyCustomers,
+    bothReportsCustomers,
+    masterOnlyAvgRevenue: masterOnlyCustomers > 0 ? masterOnlyRevenue / masterOnlyCustomers : 0,
+    ultimateOnlyAvgRevenue: ultimateOnlyCustomers > 0 ? ultimateOnlyRevenue / ultimateOnlyCustomers : 0,
+    bothAvgRevenue: bothReportsCustomers > 0 ? bothRevenue / bothReportsCustomers : 0,
   };
 }

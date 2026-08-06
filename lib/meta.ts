@@ -17,12 +17,20 @@ async function metaFetch(path: string, params: Record<string, string> = {}): Pro
 
 const CAMPAIGN_FIELDS = 'name,status,objective,spend_cap,budget_remaining';
 const INSIGHTS_FIELDS = 'spend,impressions,reach,frequency,clicks,ctr,cpm,cpc,actions,action_values,purchase_roas,cost_per_action_type,date_start,date_stop';
-
 export async function fetchAdAccountInsights(dateFrom: string, dateTo: string) {
   return metaFetch(`/act_${AD_ACCOUNT_ID}/insights`, {
     fields: INSIGHTS_FIELDS,
     time_range: JSON.stringify({ since: dateFrom, until: dateTo }),
     level: 'account',
+  });
+}
+
+export async function fetchDailySpend(dateFrom: string, dateTo: string) {
+  return metaFetch(`/act_${AD_ACCOUNT_ID}/insights`, {
+    fields: 'spend',
+    time_range: JSON.stringify({ since: dateFrom, until: dateTo }),
+    level: 'account',
+    time_increment: '1',
   });
 }
 
