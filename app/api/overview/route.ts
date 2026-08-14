@@ -5,6 +5,8 @@ import { calculatePL } from '@/lib/finance';
 import { fetchAdAccountInsights, metaConfigured } from '@/lib/meta';
 import { format } from 'date-fns';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session?.authenticated) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
