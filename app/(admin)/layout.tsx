@@ -2,9 +2,12 @@ import Sidebar from '@/components/Sidebar';
 import '@/app/globals.css';
 import { Menu } from 'lucide-react';
 
+import { requireAuth } from '@/lib/auth';
+
 export const dynamic = 'force-dynamic';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  await requireAuth();
   return (
     <div className="admin-layout">
       <input type="checkbox" id="sidebar-toggle" hidden />
