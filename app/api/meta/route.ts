@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
       testMetaConnection(),
     ]);
 
-    const isConnected = connected.status === 'fulfilled' ? connected.value : false;
+    const isConnected = connected.status === 'fulfilled' ? connected.value.success : false;
+    const connectionError = connected.status === 'fulfilled' ? connected.value.error : 'Unknown promise rejection';
     
     // Parse Account Insights
     const accountInsights = insightsRes.status === 'fulfilled' && insightsRes.value?.data?.[0]
@@ -83,6 +84,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       configured: true,
       connected: isConnected,
+      connectionError: connectionError,
       account: {
         spend,
         impressions: parseInt(accountInsights.impressions) || 0,

@@ -53,13 +53,13 @@ export async function fetchAds(adSetId: string, dateFrom: string, dateTo: string
   });
 }
 
-export async function testMetaConnection(): Promise<boolean> {
-  if (!metaConfigured) return false;
+export async function testMetaConnection(): Promise<{ success: boolean; error?: string }> {
+  if (!metaConfigured) return { success: false, error: 'META_NOT_CONFIGURED' };
   try {
     await metaFetch(`/act_${AD_ACCOUNT_ID}`, { fields: 'id,name' });
-    return true;
-  } catch (err) {
+    return { success: true };
+  } catch (err: any) {
     console.error('Meta Connection Failed:', err);
-    return false; 
+    return { success: false, error: err.message || 'Unknown connection error' }; 
   }
 }

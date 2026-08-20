@@ -83,7 +83,7 @@ export default function MetaAdsPage() {
           <>
             {!data.connected && (
               <div className="alert-banner danger" style={{ marginBottom: 16 }}>
-                <strong>Connection Error:</strong> Could not connect to Meta API. Token may be invalid or expired.
+                <strong>Connection Error:</strong> {data.connectionError || 'Could not connect to Meta API. Token may be invalid or expired.'}
               </div>
             )}
 
