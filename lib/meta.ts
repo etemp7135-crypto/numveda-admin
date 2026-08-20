@@ -58,5 +58,8 @@ export async function testMetaConnection(): Promise<boolean> {
   try {
     await metaFetch(`/act_${AD_ACCOUNT_ID}`, { fields: 'id,name' });
     return true;
-  } catch { return false; }
+  } catch (err) {
+    console.error('Meta Connection Failed:', err);
+    return false; 
+  }
 }
